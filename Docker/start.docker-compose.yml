@@ -1,0 +1,17 @@
+version: '3'
+services:
+  gateway:
+    container_name: postav-bot-api
+    restart: always
+    build:
+      context: ..
+      dockerfile: ./Dockerfiles/init.Dockerfile
+    command: uvicorn app:gateway --host 0.0.0.0 --port 6789 --reload --workers 3
+    expose:
+      - 6789
+    ports:
+      - "6379:6379"
+#    volumes:
+#      - api_datasets:/data
+#      - api_weights:/data/weights
+#      - embeddings:/active_learning
