@@ -8,6 +8,7 @@ fastapi = "*"
 uvicorn = "*"
 tortoise-orm = "*"
 fastapi-template = "*"
+pandas = "==1.5.3"
 
 [dev-packages]
 

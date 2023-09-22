@@ -1,7 +1,7 @@
 version: '3'
 services:
   gateway:
-    container_name: postav-bot-api
+    container_name: postav-telgram_bot-api
     restart: always
     build:
       context: ..
