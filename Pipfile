@@ -9,6 +9,18 @@ uvicorn = "*"
 tortoise-orm = "*"
 fastapi-template = "*"
 pandas = "==1.5.3"
+openpyxl = "*"
+python-jose = "*"
+python-multipart = "*"
+asyncpg = "==0.27.0"
+validators = "*"
+pymupdf = "*"
+python-dotenv = "*"
+install = "*"
+pymorphy2 = "*"
+nltk = "*"
+sentence-transformers = "*"
+transformers = "*"
 
 [dev-packages]
 

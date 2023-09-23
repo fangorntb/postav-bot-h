@@ -6,7 +6,7 @@ services:
     build:
       context: ..
       dockerfile: ./Dockerfiles/init.Dockerfile
-    command: uvicorn app:gateway --host 0.0.0.0 --port 6789 --reload --workers 3
+    command: uvicorn app:APP --host 0.0.0.0 --port 6789 --reload --workers 3
     expose:
       - 6789
     ports:

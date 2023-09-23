@@ -1,7 +1,7 @@
 version: '3'
 services:
   postgres:
-    container_name: postgresql
+    container_name: pg-db
     build:
       context: .
       dockerfile: ./Dockerfiles/db.Dockerfile
