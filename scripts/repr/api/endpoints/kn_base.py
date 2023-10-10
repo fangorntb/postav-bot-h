@@ -133,7 +133,7 @@ async def get_pages(
     )
     return list(
         map(
-            lambda x: {"page__data": FileTable.open(x.get('page__path')), **delete_keys(x, 'page__path')},
+            lambda x: {"page__data": FileTable.open(x.get()), **delete_keys(x, 'page__path')},
             (
                 await Document.filter(user=await get_current_user(user), **doq_q, ).prefetch_related(
                     Prefetch('page', Page.filter(**page_q))

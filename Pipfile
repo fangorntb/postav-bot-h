@@ -21,6 +21,11 @@ pymorphy2 = "*"
 nltk = "*"
 sentence-transformers = "*"
 transformers = "*"
+lxml = "==4.5.2"
+pystemmer = "==2.0.1"
+requests = "==2.24.0"
+schedule = "*"
+aioschedule = "*"
 
 [dev-packages]
 

@@ -1,8 +1,11 @@
 import dataclasses
 import re
+import string
 from collections import Counter
-
+from functools import wraps
+from typing import Union, List
 import pymorphy2
+from Stemmer import Stemmer
 from nltk.corpus import stopwords
 
 
@@ -12,19 +15,40 @@ class Word:
     word: str
 
 
-def lemmas(_text: str, ):
-    _text = _text.split()
+def tokenize(_tokens: Union[str, List[str]], t: bool) -> Union[str, List[str]]:
+    if isinstance(_tokens, list):
+        return ' '.join(_tokens) if not t else _tokens
+    return _tokens.split() if t else _tokens
+
+
+def tokenize_decorator(tokens: bool = True) -> callable:
+    def token(func):
+        @wraps(func)
+        def tok(_tokens: Union[str, List[str]], t: bool = False) -> Union[str, List[str]]:
+            _tokens = tokenize(_tokens, tokens)
+            return tokenize(func(_tokens), t)
+
+        return tok
+
+    return token
+
+
+@tokenize_decorator()
+def lemmas(_text: Union[str, List[str]], t: bool = False) -> Union[str, List[str]]:
+    _text = tokenize(_text, True)
     morph = pymorphy2.MorphAnalyzer()
-    return ' '.join([morph.parse(word)[0].normal_form for word in _text])
+    return tokenize([morph.parse(word)[0].normal_form for word in _text], t)
 
 
-def remove_stop_word(_text: str):
-    _text = _text.split()
+@tokenize_decorator()
+def remove_stop_words(_text: Union[str, List[str]], ) -> Union[str, List[str]]:
+    _text = tokenize(_text, True)
     stop_words = set(stopwords.words("russian"))
-    return " ".join([word for word in _text if word.lower() not in stop_words])
+    return [word for word in _text if word.lower() not in stop_words]
 
 
-def cleanup(_text: str, full: bool = False) -> str:
+@tokenize_decorator(False)
+def cleanup(_text: str, full: bool = False, ) -> Union[str, List[str]]:
     return re.sub(
         r'[^\w\s]' if full else r'\b\w+[\.,!?;]*\w+\b',
         lambda x: re.sub(r'[\.,!?;]', '', x.group()),
@@ -32,8 +56,9 @@ def cleanup(_text: str, full: bool = False) -> str:
     )
 
 
-def replace_newlines(_text: str):
-    _text = re.sub(r' +(?=\w)', ' ', _text.strip(' ').strip().replace('\n ', '\n'))
+@tokenize_decorator()
+def replace_newlines(_text: Union[str, List[str]], ) -> Union[str, List[str]]:
+    _text = re.sub(r' +(?=\w)', ' ', _text.strip().replace('\n ', '\n'))
     lines = [i.strip().split(' ') for i in _text.split('\n')]
     _text = ''
     for line in lines:
@@ -48,8 +73,9 @@ def replace_newlines(_text: str):
     return re.sub(r'\b\n\b', ' ', _text)
 
 
-def get_keywords(_text: str, _nk: int = None):
-    _text = re.findall(r'\w+', remove_stop_word(lemmas(cleanup(_text.lower(), full=True))).lower())
+@tokenize_decorator()
+def get_keywords(_text: Union[str, List[str]], _nk: int = None):
+    _text = re.findall(r'\w+', remove_stop_words(lemmas(cleanup(_text.lower(), full=True))).lower())
     most_common = Counter(_text).most_common()
     return [
                Word(count, word).__dict__
@@ -58,14 +84,32 @@ def get_keywords(_text: str, _nk: int = None):
            ][:_nk]
 
 
+@tokenize_decorator(False)
 def preprocess_page(_text: str):
-    _text = '\n'.join(
-        [line for line in _text.split('\n') if "рисун" not in line.lower()]
-    )
-    _text = cleanup(replace_newlines(_text))
+    _text = [line for line in _text.split('\n') if "рисун" not in line.lower()]
+    _text = cleanup(replace_newlines(_text, True), True)
     return _text
 
 
-print(preprocess_page(
-    open('/home/localhost/py/postav-bot-h/data/base/09-24-23/0/c9d1ee1d-232b-4455-b6ba-5a8dbe99477c').read())
-)
+@tokenize_decorator()
+def lowercase_filter(_text: Union[str, List[str]], ) -> Union[str, List[str]]:
+    return [token.lower() for token in _text]
+
+
+@tokenize_decorator()
+def punctuation_filter(_text: Union[str, List[str]], ) -> Union[str, List[str]]:
+    return [re.compile('[%s]' % re.escape(string.punctuation)).sub('', token) for token in _text]
+
+
+@tokenize_decorator()
+def stem_filter(_text: Union[str, List[str]], ) -> Union[str, List[str]]:
+    return Stemmer('russian').stemWords(_text)
+
+
+@tokenize_decorator()
+def preprocess_for_search(_text: Union[str, List[str]], ) -> Union[str, List[str]]:
+    _text = lowercase_filter(_text, True)
+    _text = punctuation_filter(_text, True)
+    _text = remove_stop_words(_text, True)
+    _text = stem_filter(_text, True)
+    return _text

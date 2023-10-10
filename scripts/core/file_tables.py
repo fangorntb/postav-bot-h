@@ -79,12 +79,13 @@ class FileTable:
             _file: BytesIO = None,
             _uuid: uuid.UUID = None,
             back: BackgroundTasks = None,
+            postfix: str = '',
     ):
         latest = self.latest
         first_layer = self.first_layer
         self._add_first_layer(first_layer)
         path = self._add_part(first_layer, latest)
-        path = path / str(uuid.uuid4()) if _uuid is None else str(_uuid)
+        path = path / f'{str(uuid.uuid4()) if _uuid is None else str(_uuid)}{postfix}'
         if back is not None:
             back.add_task(self.write, path, _file, )
             return path
